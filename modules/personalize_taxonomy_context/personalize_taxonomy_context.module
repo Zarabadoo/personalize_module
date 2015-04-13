@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file personalize_taxonomy_context.module
+ * Provides a visitor context plugin for taxonomy.
+ */
+
+/**
+ * Implements hook_personalize_visitor_contexts().
+ */
+function personalize_taxonomy_context_personalize_visitor_context() {
+  $info = array();
+  $path = drupal_get_path('module', 'personalize_taxonomy_context') . '/plugins';
+  $info['taxonomy_context'] = array(
+    'path' => $path . '/visitor_context',
+    'handler' => array(
+      'file' => 'TaxonomyContext.inc',
+      'class' => 'TaxonomyContext',
+    ),
+  );
+  return $info;
+}
+
+/**
+ * This function is expected to exist and be used to retrieve terms.
+ *
+ * @param $nid
+ *   Node id.
+ * @param $vid
+ *   Vocabulary id.
+ * @return array
+ *   An array of string terms.
+ */
+function personalize_taxonomy_context_get_terms($nid, $vid) {
+  $query =
+    'SELECT {taxonomy_term_data}.name ' .
+    'FROM {taxonomy_term_data} ' .
+    'JOIN {taxonomy_vocabulary} ' .
+    'ON {taxonomy_term_data}.vid = {taxonomy_vocabulary}.vid ' .
+    'JOIN {taxonomy_index} ' .
+    'ON {taxonomy_term_data}.tid = {taxonomy_index.tid} ' .
+    'WHERE {taxonomy_index}.nid = :nid ' .
+    'AND {taxonomy_vocabulary}.vid = :vid';
+
+  $results = db_query($query, array(
+    ':nid' => $nid,
+    ':vid' => $vid,
+  ));
+
+  return $results->fetchCol();
+}
