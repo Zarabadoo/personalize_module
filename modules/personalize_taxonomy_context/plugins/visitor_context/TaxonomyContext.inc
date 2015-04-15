@@ -19,19 +19,15 @@ class TaxonomyContext extends PersonalizeContextBase {
    */
   public static function getOptions() {
     $vocabularies = taxonomy_get_vocabularies();
-    $vocabulary_names = array();
-    foreach ($vocabularies as $vid => $vocabulary) {
-      $vocabulary_names[$vid] = $vocabulary->name;
-    }
-
     $options = array();
-    foreach ($vocabulary_names as $vid => $name) {
-      $options[$vid] = array(
+    foreach ($vocabularies as $vocabulary) {
+      $machine_name = $vocabulary->machine_name;
+      $name = $vocabulary->name;
+      $options[$machine_name] = array(
         'name' => $name,
         'group' => 'Taxonomy',
       );
     }
-
     return $options;
   }
 
