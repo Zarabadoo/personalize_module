@@ -21,11 +21,13 @@ class TaxonomyContext extends PersonalizeContextBase {
     $vocabularies = taxonomy_get_vocabularies();
     $options = array();
     foreach ($vocabularies as $vocabulary) {
+      $vid = $vocabulary->vid;
       $machine_name = $vocabulary->machine_name;
       $name = $vocabulary->name;
       $options[$machine_name] = array(
         'name' => $name,
         'group' => 'Taxonomy',
+        'id' => $vid,
       );
     }
     return $options;
@@ -37,12 +39,18 @@ class TaxonomyContext extends PersonalizeContextBase {
   public function getPossibleValues($limit = FALSE) {
     $possible_values = array();
     $options = $this->getOptions();
-    foreach ($options as $name => $info) {
+    foreach ($options as $machine_name => $info) {
+      $terms = taxonomy_get_tree($info['id']);
+      $values = array();
+      foreach($terms as $term) {
+        $values[$term->tid] = $term->name;
+      }
+      $name = $options[$machine_name]['name'];
       $possible_values[$name] = array(
-        'value type' => 'string',
+        'value type' => 'predefined',
+        'values' => $values,
       );
     }
-
     return $possible_values;
   }
 }
