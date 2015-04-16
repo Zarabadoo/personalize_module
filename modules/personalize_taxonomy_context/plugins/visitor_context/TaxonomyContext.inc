@@ -19,10 +19,15 @@ class TaxonomyContext extends PersonalizeContextBase {
    */
   public static function getOptions() {
     $vocabularies = taxonomy_get_vocabularies();
+    $free_tagging_vocabulary_machine_names = SELF::getFreeTaggingVocabulariesMachineNames();
     $options = array();
     foreach ($vocabularies as $vocabulary) {
-      $vid = $vocabulary->vid;
       $machine_name = $vocabulary->machine_name;
+      // If the vocabulary is a free-tagging vocabulary, exclude it.
+      if (in_array($machine_name, $free_tagging_vocabulary_machine_names)) {
+        continue;
+      }
+      $vid = $vocabulary->vid;
       $name = $vocabulary->name;
       $options[$machine_name] = array(
         'name' => $name,
@@ -52,5 +57,23 @@ class TaxonomyContext extends PersonalizeContextBase {
       );
     }
     return $possible_values;
+  }
+
+/**
+ * Get an array of machine names that are of free tagging vocabularies.
+ *
+ * @return array
+ *   An array of machine names.
+ */
+  public static function getFreeTaggingVocabulariesMachineNames() {
+    // Free-tagging vocabulary "is generally accomplished by using a term reference
+    // field with an auto-complete widget on the content creation page."
+    $query =
+      'SELECT bundle ' .
+      'FROM {field_config_instance} ' .
+      'WHERE entity_type = \'taxonomy_term\' ' .
+      'AND data LIKE \'%s:4:"type";s:21:"taxonomy_autocomplete"%\'';
+    $results = db_query($query);
+    return $results->fetchCol() ?: array();
   }
 }
